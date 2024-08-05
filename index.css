@@ -1,0 +1,103 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  align-items: stretch;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+
+.card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}
+.card h1 {
+  font-family: monospace;
+  font-size: 12em;
+}
+
+.hide {
+  display: none;
+}
+
+
+#standby {
+  align-items: center;
+  background-color: black;
+  color: white;
+  justify-content: center;
+}
+#ready,
+#halt
+{
+  border: none;
+  border-radius: 0.25em;
+
+  box-shadow: gray 0.05em 0.05em;
+  -webkit-box-shadow: gray 0.05em 0.05em;
+
+  font-size: 16em;
+  height: 2em;
+
+  padding: 0;
+
+  text-shadow: black 4px 4px;
+  -webkit-text-shadow: black 4px 4px;
+
+  width: 2em;
+
+}
+
+
+#launch {
+  align-items: center;
+  background-color: green;
+  color: lightgreen;
+  justify-content: center;
+}
+
+
+#air {
+  align-items: center;
+  background-color: lightblue;
+  color: navy;
+  justify-content: center;
+  overflow-y: scroll;
+}
+#air h2 {
+  font-size: 8em;
+  font-family: monospace;
+}
+
+
+#down {
+  align-items: center;
+  background-color: white;
+  color: black;
+  justify-content: center;
+  overflow-y: scroll;
+}
+
+#down h2 {
+  font-size: 8em;
+  font-family: monospace;
+}
+
+
+#reload {
+  align-items: center;
+  background-color: red;
+  color: white;
+  font-size: 2em;
+  justify-content: center;
+}
+

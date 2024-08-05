@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+<meta charset="utf-8">
+<title>Hang Time</title>
+<link rel="stylesheet" href="index.css" />
+</head>
+
+
+<body>
+
+<div id="standby" class="card">
+  <button
+    id="ready"
+    label="Tap, then throw"
+    onclick="init();"
+  >
+    🚀
+  </button>
+</div>
+
+
+<div id="launch" class="card hide">
+  <h1 id="prompt">LAUNCH</h1>
+  <!--
+  <button
+    id="halt"
+    onclick="changeToDown();"
+  >
+    🛑
+  </button>
+  -->
+</div>
+
+
+
+<div id="air" class="card hide">
+  <h1 class="mode">AIR</h1>
+  <h2 id="ticker"></h2>
+  <!--
+  <button
+    id="halt"
+    onclick="changeToDown();"
+  >
+    🛑
+  </button>
+  -->
+</div>
+
+
+
+<div id="down" class="card hide">
+  <h1 class="mode">DOWN</h1>
+  <h2 id="time"></h2>
+</div>
+
+
+<div id="reload" class="card hide">RELOAD</div>
+
+
+<div id="logs" class="hide">
+</div>
+
+<script src="index.js"></script>
+</body>
+
+</html>
