@@ -117,10 +117,12 @@ function handleMotion(ev) {
   });
   tsLast = now;
 
-  const delta = Math.abs(
-    data[data.length-2].value
-    - data[data.length-1].value
-  );
+  const delta = data.length >= 2
+    ? Math.abs(
+        data[data.length-2].value
+        - data[data.length-1].value
+      )
+    : 0
 
   if (mode === MODES.LAUNCH && THRESHOLD <= delta) {
     changeToAir(now);
