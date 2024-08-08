@@ -7,7 +7,6 @@ let tickerId = 0;
 const interval = 20;
 const THRESHOLD = 7.0;
 
-const samples = [];
 const data = [];
 
 
@@ -112,8 +111,6 @@ function handleMotion(ev) {
   const { x, y, z } = event.acceleration;
   const magnitude = Math.sqrt( (x * x) + (y * y) + (z * z) );
 
-  //console.log(ev);
-  samples.push(ev);
   data.push({
     ts: now,
     value: Number(magnitude.toFixed(4)),
@@ -130,15 +127,6 @@ function handleMotion(ev) {
   } else if (mode === MODES.AIR && THRESHOLD <= delta) {
     changeToDown(now);
   }
-
-  const block = document.createElement('ul');
-  block.innerHTML = `
-  <li>Tick: ${now - tsStart}</li>
-  <li>Magnitude: ${magnitude.toFixed(4)}</li>
-  <li>Sum: ${sum.toFixed(4)}</li>
-  <li>Avg: ${avg.toFixed(4)}</li>`;
-  document.getElementById('air').append(block);
-  document.getElementById('down').append(block);
 }
 
 
