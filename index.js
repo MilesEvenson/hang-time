@@ -108,7 +108,7 @@ function handleMotion(ev) {
     return;
   }
 
-  const { x, y, z } = event.acceleration;
+  const { x, y, z } = ev.acceleration;
   const magnitude = Math.sqrt( (x * x) + (y * y) + (z * z) );
 
   data.push({
