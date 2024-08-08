@@ -65,7 +65,7 @@ function changeToAir(now) {
 
 function changeToDown(now) {
   clearInterval(tickerId);
-  mode = MODES.AIR;
+  mode = MODES.DOWN;
 
   window.removeEventListener('devicemotion', handleMotion);
 
