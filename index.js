@@ -1,7 +1,7 @@
 
 
-const tsStart = Date.now();
-let tsLast = tsStart;
+let tsStart = -1;
+let tsLast = Date.now();
 let tickerId = 0;
 // Check every 20ms
 const interval = 20;
@@ -45,8 +45,10 @@ function changeToLaunch() {
 }
 
 
-function changeToAir() {
+function changeToAir(now) {
   mode = MODES.AIR;
+
+  tsStart = now;
 
   tickerId = window.setInterval(
     () => document.getElementById('ticker').innerText = (Date.now() - tsStart),
@@ -123,9 +125,8 @@ function handleMotion(ev) {
     - data[data.length-1].value
   );
 
-
   if (mode === MODES.LAUNCH && THRESHOLD <= delta) {
-    changeToAir();
+    changeToAir(now);
   } else if (mode === MODES.AIR && THRESHOLD <= delta) {
     changeToDown(now);
   }
