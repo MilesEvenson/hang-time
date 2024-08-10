@@ -95,9 +95,9 @@ function changeToReload() {
 }
 
 
-function isLaunchDetected(samples) {
+function getAirStart(samples) {
   if (samples.length < WINDOW_SIZE) {
-    return false;
+    return -1;
   }
 
   const MIN_BOOST = 1.0;
@@ -108,17 +108,15 @@ function isLaunchDetected(samples) {
   let boostCount = 0;
   let flyingCount = 0;
   let isBoosting = true;
-  let boost = 0.0;
-  let peakBoost = 0.0;
+  let delta = 0.0;
   let peakAcceleration = 0.0;
 
   for (let i = 1; i < samples.length; i++) {
-    boost = samples[i].value - samples[i-1].value;
+    delta = samples[i].value - samples[i-1].value;
 
     if (isBoosting) {
-      if (0.0 < boost) {
+      if (0.0 < delta) {
         boostCount++;
-        peakBoost = Math.max(peakBoost, boost);
         peakAcceleration = Math.max(peakAcceleration, samples[i].value);
       } else {
         flyingCount++;
@@ -127,12 +125,11 @@ function isLaunchDetected(samples) {
     } else {
       // We expect boost (acceleration) to decline after the phone is in the air.
       // Allow a fair amount of jitter here by accepting acceleration values up to 11.0 m/s^2.
-      if (boost < 0 || samples[i].value < 11.0) {
+      if (delta < 0 || samples[i].value < 11.0) {
         flyingCount++;
-      } else if (MIN_BOOST < boost) {
+      } else if (MIN_BOOST < delta) {
         isBoosting = true;
         peakAcceleration = Math.max(peakAcceleration, samples[i].value);
-        peakBoost = boost;
         boostCount = 1;
         flyingCount = 0;
       }
@@ -142,11 +139,11 @@ function isLaunchDetected(samples) {
         && MIN_AIR_SAMPLES <= flyingCount
         && MIN_ACCELERATION < peakAcceleration
     ) {
-      return true;
+      return i - flyingCount;
     }
   }
 
-  return false;
+  return -1;
 }
 
 
@@ -180,8 +177,10 @@ function handleMotion(ev) {
 
     //if (mode === MODES.LAUNCH && data.length === WINDOW_SIZE) {
     if (mode === MODES.LAUNCH && WINDOW_SIZE <= data.length) {
-      if (isLaunchDetected(data)) {
-        data.splice(0, WINDOW_SIZE);
+      const airStart = getAirStart(data);
+      if (airStart !== -1) {
+        // Drop datapoints from before and during launch.
+        data.splice(0, airStart);
         changeToAir(now);
       }
       //else { console.log('no launch detected'); }
