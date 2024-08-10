@@ -3,9 +3,11 @@
 let tsStart = -1;
 let tsLast = Date.now();
 let tickerId = 0;
-// Check every 20ms
-const interval = 20;
-const THRESHOLD = 7.0;
+const MIN_ACCELERATION = 19.0;
+// Check every 30ms
+const INTERVAL = 30;
+// Hold samples from the last ~900ms
+const WINDOW_SIZE = 30;
 
 const data = [];
 
@@ -93,6 +95,59 @@ function changeToReload() {
 }
 
 
+function isLaunchDetected(samples) {
+  if (samples.length < WINDOW_SIZE) {
+    return false;
+  }
+
+  const MIN_BOOST = 1.0;
+  const MIN_BOOST_SAMPLES = 3;
+  // Try to enforce a minimum of ~500ms in the air.
+  const MIN_AIR_SAMPLES = 16;
+
+  let boostCount = 0;
+  let flyingCount = 0;
+  let isBoosting = true;
+  let boost = 0.0;
+  let peakBoost = 0.0;
+  let peakAcceleration = 0.0;
+
+  for (let i = 1; i < samples.length; i++) {
+    boost = samples[i].value - samples[i-1].value;
+
+    if (isBoosting) {
+      if (0.0 < boost) {
+        boostCount++;
+        peakBoost = Math.max(peakBoost, boost);
+        peakAcceleration = Math.max(peakAcceleration, samples[i].value);
+      } else {
+        flyingCount++;
+        isBoosting = false;
+      }
+    } else {
+      // We expect boost (acceleration) to decline after the phone is in the air.
+      // Allow a fair amount of jitter here by accepting acceleration values up to 11.0 m/s^2.
+      if (boost < 0 || samples[i].value < 11.0) {
+        flyingCount++;
+      } else if (MIN_BOOST < boost) {
+        isBoosting = true;
+        peakAcceleration = Math.max(peakAcceleration, samples[i].value);
+        peakBoost = boost;
+        boostCount = 1;
+        flyingCount = 0;
+      }
+    }
+
+    if (MIN_BOOST_SAMPLES <= boostCount
+        && MIN_AIR_SAMPLES <= flyingCount
+        && MIN_ACCELERATION < peakAcceleration
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 
 function handleMotion(ev) {
@@ -104,9 +159,10 @@ function handleMotion(ev) {
   }
 
   const now = Date.now();
-  if ((now - tsLast) < interval) {
+  if ((now - tsLast) < INTERVAL) {
     return;
   }
+  tsLast = now;
 
   const { x, y, z } = ev.acceleration;
   const magnitude = Math.sqrt( (x * x) + (y * y) + (z * z) );
@@ -115,42 +171,32 @@ function handleMotion(ev) {
     ts: now,
     value: Number(magnitude.toFixed(4)),
   });
-  tsLast = now;
 
-  const delta = data.length >= 2
-    ? Math.abs(
-        data[data.length-2].value
-        - data[data.length-1].value
-      )
-    : 0
+  if (WINDOW_SIZE < data.length) {
+    // Drop the oldest measurement
+    data.shift();
 
-  if (mode === MODES.LAUNCH && THRESHOLD <= delta) {
-    changeToAir(now);
-  } else if (mode === MODES.AIR && THRESHOLD <= delta) {
-    changeToDown(now);
+    //console.log(data);
+
+    //if (mode === MODES.LAUNCH && data.length === WINDOW_SIZE) {
+    if (mode === MODES.LAUNCH && WINDOW_SIZE <= data.length) {
+      if (isLaunchDetected(data)) {
+        changeToAir(now);
+        data.splice(0, WINDOW_SIZE);
+      }
+      //else { console.log('no launch detected'); }
+    } else if (mode === MODES.AIR && WINDOW_SIZE <= data.length) {
+      if (isLandingDetected(data)) {
+        changeToDown(now);
+        data.splice(0, WINDOW_SIZE);
+      }
+      //else { console.log('no down detected'); }
+    }
+    else {
+      console.log(`mode (${mode}) with data length (${data?.length})`);
+    }
   }
 }
-
-
-/*
-function handleOrientation(ev) {
-  if (ev.alpha < 0.5 && ev.beta < 0.5 && ev.gamma < 0.5) {
-    return
-  }
-  console.log(ev);
-  const h4 = document.createElement('h4');
-  h4.innerText = 'Orientation';
-  //document.getElementById('logs').append(h4);
-
-  const block = document.createElement('pre');
-  block.innerHTML = `<ul>
-  <li>alpha - ${ev.alpha}</li>
-  <li>beta - ${ev.beta}</li>
-  <li>gamma - ${ev.gamma}</li>
-</ul>`;
-  //document.getElementById('logs').append(block);
-}
-*/
 
 
 function init() {
