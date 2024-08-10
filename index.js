@@ -181,8 +181,8 @@ function handleMotion(ev) {
     //if (mode === MODES.LAUNCH && data.length === WINDOW_SIZE) {
     if (mode === MODES.LAUNCH && WINDOW_SIZE <= data.length) {
       if (isLaunchDetected(data)) {
-        changeToAir(now);
         data.splice(0, WINDOW_SIZE);
+        changeToAir(now);
       }
       //else { console.log('no launch detected'); }
     } else if (mode === MODES.AIR && WINDOW_SIZE <= data.length) {
