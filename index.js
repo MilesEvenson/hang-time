@@ -11,6 +11,7 @@ const INTERVAL = 30;
 const WINDOW_SIZE = 30;
 
 const data = [];
+const debug = [];
 
 
 const MODES = {
@@ -157,9 +158,7 @@ function getAirStartIndex(samples) {
 }
 
 
-function getDownTimestamp(samples) {
-  // TODO - change to getDownIndex to align with getAirStartIndex
-
+function getDownIndex(samples) {
   // Allow for some jitter in values from the accelerometer.
   const DECEL_THRESHOLD = 11.0;
   const DOWN_THRESHOLD = 9.0;
@@ -182,7 +181,7 @@ function getDownTimestamp(samples) {
       if (DECEL_THRESHOLD < samples[i].value) {
         // We're done if there is a sharp deceleration after free fall.
         // Don't bother counting low-accel samples.
-        return samples[i].ts;
+        return i;
       } else if (samples[i].value < DOWN_THRESHOLD) {
         downCount++;
       } else {
@@ -191,7 +190,8 @@ function getDownTimestamp(samples) {
     }
 
     if (MIN_DOWN_POINTS <= downCount) {
-      return samples[i-downCount].ts;
+      //return samples[i-downCount].ts;
+      return i - downCount;
     }
   }
 
@@ -244,12 +244,13 @@ function processDatapoint(datum) {
         changeToAir(airStartAt);
       }
     } else if (mode === MODES.AIR && WINDOW_SIZE <= data.length) {
-      const downAt = getDownTimestamp(data);
-      debug.push({
-        ts: datum.ts,
-        value: `downAt ${downAt}`,
-      });
-      if (downAt !== -1) {
+      const downAtIndex = getDownIndex(data);
+      if (downAtIndex !== -1 && downAtIndex < data.length) {
+        const downAt = data[downAtIndex].ts;
+        debug.push({
+          ts: datum.ts,
+          value: `downAt ${downAt}`,
+        });
         if (MIN_AIR_TIME <= (downAt - tsStart)) {
           changeToDown(downAt);
         } else {
@@ -257,8 +258,15 @@ function processDatapoint(datum) {
             ts: datum.ts,
             value: `air too short: ${(downAt - tsStart)}`,
           });
+          // TODO - change to Down, with optinal param
           changeToDebug();
         }
+      } else if (data.length <= downAtIndex) {
+          debug.push({
+            ts: datum.ts,
+            value: `data (${data.length}) < downAtIndex ${downAtIndex}`,
+          });
+          changeToReload();
       }
     }
   }
