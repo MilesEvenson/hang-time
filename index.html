@@ -25,10 +25,10 @@
   <h1 id="prompt">LAUNCH</h1>
   <!--
   <button
-    id="halt"
-    onclick="changeToDown();"
+    class="debug"
+    onclick="handleDebug();"
   >
-    🛑
+    debug
   </button>
   -->
 </div>
@@ -40,10 +40,10 @@
   <h2 id="ticker"></h2>
   <!--
   <button
-    id="halt"
-    onclick="changeToDown();"
+    class="debug"
+    onclick="handleDebug();"
   >
-    🛑
+    debug
   </button>
   -->
 </div>
@@ -53,13 +53,35 @@
 <div id="down" class="card hide">
   <h1 class="mode">DOWN</h1>
   <h2 id="time"></h2>
+  <!--
+  <button
+    class="debug"
+    onclick="handleDebug();"
+  >
+    debug
+  </button>
+  -->
 </div>
 
 
 <div id="reload" class="card hide">RELOAD PAGE</div>
 
 
-<div id="logs" class="hide">
+<div id="debug" class="card hide">
+  <button
+    id="copy-data"
+    onclick="copyData();"
+  >
+    COPY DATA
+  </button>
+  <table class="messages">
+    <thead>
+      <tr>
+        <th>ts</th>
+        <th>value</th>
+      </tr>
+    </thead>
+  </table>
 </div>
 
 <script src="index.js"></script>

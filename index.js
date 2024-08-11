@@ -3,7 +3,8 @@
 let tsStart = -1;
 let tsLast = Date.now();
 let tickerId = 0;
-const MIN_ACCELERATION = 19.0;
+const MIN_ACCELERATION = 11.0;
+const MIN_AIR_TIME = 1000;
 // Check every 30ms
 const INTERVAL = 30;
 // Hold samples from the last ~900ms
@@ -18,6 +19,7 @@ const MODES = {
   AIR: 'AIR',
   DOWN: 'DOWN',
   RELOAD: 'RELOAD',
+  DEBUG: 'DEBUG',
 };
 let mode = MODES.STANDBY;
 
@@ -95,18 +97,45 @@ function changeToReload() {
 }
 
 
+function changeToDebug() {
+  mode = MODES.DEBUG;
+
+  window.removeEventListener('devicemotion', handleMotion);
+
+  document.getElementById('debug').classList.remove('hide');
+
+  document.getElementById('reload').classList.add('hide');
+  document.getElementById('standby').classList.add('hide');
+  document.getElementById('launch').classList.add('hide');
+  document.getElementById('air').classList.add('hide');
+  document.getElementById('down').classList.add('hide');
+
+  debug.forEach(({ ts, value}) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${ts}</td>
+      <td>${value}</td>
+    `;
+
+    const table = document.querySelector('#debug .messages');
+    if (table) {
+      table.appendChild(row);
+    }
+  });
+}
+
+
 function getAirStartIndex(samples) {
   if (samples.length < WINDOW_SIZE) {
     return -1;
   }
 
-  // TODO - Maybe split into two modes?
+  // Try to enforce a minimum of ~300ms air time.
   const MIN_RISE_SAMPLES = 10;
-  // Try to enforce a minimum of ~300ms fall time.
-  const MIN_FALL_SAMPLES = 10;
 
   let riseCount = 0;
   let releaseIndex = -1;
+  let maxAcceleration = samples[0].value;
 
   for (let i = 1; i < samples.length; i++) {
     const slowing = samples[i].value < samples[i-1].value;
@@ -116,9 +145,10 @@ function getAirStartIndex(samples) {
     } else {
       releaseIndex = i;
       riseCount = 0;
+      maxAcceleration = Math.max(maxAcceleration, samples[i].value);
     }
 
-    if (MIN_RISE_SAMPLES <= riseCount) {
+    if (MIN_RISE_SAMPLES <= riseCount && MIN_ACCELERATION < maxAcceleration) {
       return releaseIndex;
     }
   }
@@ -128,23 +158,36 @@ function getAirStartIndex(samples) {
 
 
 function getDownTimestamp(samples) {
-  // TODO - lots of work to be done in here 
+  // TODO - change to getDownIndex to align with getAirStartIndex
 
+  // Allow for some jitter in values from the accelerometer.
   const DECEL_THRESHOLD = 11.0;
-  const DOWN_THRESHOLD = 9.8;
+  const DOWN_THRESHOLD = 9.0;
   const MIN_DOWN_POINTS = 10;
-
+  let isRising = true;
   let downCount = 0;
 
   for (let i = 1; i < samples.length; i++) {
-    if (DECEL_THRESHOLD <= samples[i].value) {
-      // If there is a sharp deceleration, we're done.
-      // Don't bother counting low-accel samples.
-      return samples[i].ts;
-    } else if (samples[i].value < DOWN_THRESHOLD) {
-      downCount++;
+    if (isRising) {
+      // We know the phone is in free fall when a sample value is below this threshold.
+      if (samples[i].value <= DECEL_THRESHOLD) {
+        debug.push({
+          ts: samples[i].ts,
+          value: `falling at ${samples[i].ts}`,
+        });
+        isRising = false;
+      }
+      // else - Phone is still rising toward its apex (acceleration continues decrease to ~9.8).
     } else {
-      downCount = 0;
+      if (DECEL_THRESHOLD < samples[i].value) {
+        // We're done if there is a sharp deceleration after free fall.
+        // Don't bother counting low-accel samples.
+        return samples[i].ts;
+      } else if (samples[i].value < DOWN_THRESHOLD) {
+        downCount++;
+      } else {
+        downCount = 0;
+      }
     }
 
     if (MIN_DOWN_POINTS <= downCount) {
@@ -173,10 +216,16 @@ function handleMotion(ev) {
   const { x, y, z } = ev.acceleration;
   const magnitude = Math.sqrt( (x * x) + (y * y) + (z * z) );
 
-  data.push({
+  processDatapoint({
     ts: now,
     value: Number(magnitude.toFixed(4)),
   });
+}
+
+
+function processDatapoint(datum) {
+  data.push(datum);
+  debug.push(datum);
 
   if (WINDOW_SIZE < data.length) {
     // Drop the oldest datapoint
@@ -186,14 +235,30 @@ function handleMotion(ev) {
       const airStartIndex = getAirStartIndex(data);
       if (airStartIndex !== -1) {
         const airStartAt = data[airStartIndex].ts;
+        debug.push({
+          ts: datum.ts,
+          value: `airStartAt ${airStartAt}`,
+        });
         // Drop datapoints from before and during launch.
         data.splice(0, airStartIndex);
         changeToAir(airStartAt);
       }
     } else if (mode === MODES.AIR && WINDOW_SIZE <= data.length) {
       const downAt = getDownTimestamp(data);
+      debug.push({
+        ts: datum.ts,
+        value: `downAt ${downAt}`,
+      });
       if (downAt !== -1) {
-        changeToDown(downAt);
+        if (MIN_AIR_TIME <= (downAt - tsStart)) {
+          changeToDown(downAt);
+        } else {
+          debug.push({
+            ts: datum.ts,
+            value: `air too short: ${(downAt - tsStart)}`,
+          });
+          changeToDebug();
+        }
       }
     }
   }
@@ -215,6 +280,16 @@ function init() {
     window.addEventListener('devicemotion', handleMotion);
     changeToLaunch();
   }
+}
+
+
+function handleDebug() {
+  changeToDebug();
+}
+
+
+function copyData() {
+  navigator.clipboard.writeText(JSON.stringify(debug)).then(() => alert('copied'));
 }
 
 

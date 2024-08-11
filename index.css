@@ -24,6 +24,9 @@ body {
   font-family: monospace;
   font-size: 12em;
 }
+.card button.debug {
+  font-size: 6em;
+}
 
 .hide {
   display: none;
@@ -99,5 +102,13 @@ body {
   color: white;
   font-size: 2em;
   justify-content: center;
+}
+
+
+#debug #copy-data {
+  font-size: 3em;
+}
+#debug .messages {
+  font-size: 3em;
 }
 
