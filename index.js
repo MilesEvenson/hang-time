@@ -100,46 +100,26 @@ function getAirStartIndex(samples) {
     return -1;
   }
 
-  const MIN_BOOST = 1.0;
-  const MIN_BOOST_SAMPLES = 3;
-  // Try to enforce a minimum of ~500ms in the air.
-  const MIN_AIR_SAMPLES = 16;
+  // TODO - Maybe split into two modes?
+  const MIN_RISE_SAMPLES = 10;
+  // Try to enforce a minimum of ~300ms fall time.
+  const MIN_FALL_SAMPLES = 10;
 
-  let boostCount = 0;
-  let flyingCount = 0;
-  let isBoosting = true;
-  let delta = 0.0;
-  let peakAcceleration = 0.0;
+  let riseCount = 0;
+  let releaseIndex = -1;
 
   for (let i = 1; i < samples.length; i++) {
-    delta = samples[i].value - samples[i-1].value;
+    const slowing = samples[i].value < samples[i-1].value;
 
-    if (isBoosting) {
-      if (0.0 < delta) {
-        boostCount++;
-        peakAcceleration = Math.max(peakAcceleration, samples[i].value);
-      } else {
-        flyingCount++;
-        isBoosting = false;
-      }
+    if (slowing) {
+      riseCount++;
     } else {
-      // We expect boost (acceleration) to decline after the phone is in the air.
-      // Allow a fair amount of jitter here by accepting acceleration values up to 11.0 m/s^2.
-      if (delta < 0 || samples[i].value < 11.0) {
-        flyingCount++;
-      } else if (MIN_BOOST < delta) {
-        isBoosting = true;
-        peakAcceleration = Math.max(peakAcceleration, samples[i].value);
-        boostCount = 1;
-        flyingCount = 0;
-      }
+      releaseIndex = i;
+      riseCount = 0;
     }
 
-    if (MIN_BOOST_SAMPLES <= boostCount
-        && MIN_AIR_SAMPLES <= flyingCount
-        && MIN_ACCELERATION < peakAcceleration
-    ) {
-      return i - flyingCount;
+    if (MIN_RISE_SAMPLES <= riseCount) {
+      return releaseIndex;
     }
   }
 
