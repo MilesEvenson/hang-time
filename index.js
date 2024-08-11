@@ -34,6 +34,7 @@ function changeToStandby() {
   document.getElementById('air').classList.add('hide');
   document.getElementById('down').classList.add('hide');
   document.getElementById('reload').classList.add('hide');
+  document.getElementById('debug').classList.add('hide');
 }
 
 
@@ -46,6 +47,7 @@ function changeToLaunch() {
   document.getElementById('air').classList.add('hide');
   document.getElementById('down').classList.add('hide');
   document.getElementById('reload').classList.add('hide');
+  document.getElementById('debug').classList.add('hide');
 }
 
 
@@ -65,10 +67,11 @@ function changeToAir(now) {
   document.getElementById('launch').classList.add('hide');
   document.getElementById('down').classList.add('hide');
   document.getElementById('reload').classList.add('hide');
+  document.getElementById('debug').classList.add('hide');
 }
 
 
-function changeToDown(now) {
+function changeToDown(now, tooShort) {
   clearInterval(tickerId);
   mode = MODES.DOWN;
 
@@ -76,11 +79,15 @@ function changeToDown(now) {
 
   document.getElementById('down').classList.remove('hide');
   document.getElementById('time').innerText = `${(now - tsStart)}ms`;
+  if (tooShort) {
+    document.getElementById('smirk').classList.remove('hide');
+  }
 
   document.getElementById('standby').classList.add('hide');
   document.getElementById('launch').classList.add('hide');
   document.getElementById('air').classList.add('hide');
   document.getElementById('reload').classList.add('hide');
+  document.getElementById('debug').classList.add('hide');
 }
 
 
@@ -95,6 +102,7 @@ function changeToReload() {
   document.getElementById('launch').classList.add('hide');
   document.getElementById('air').classList.add('hide');
   document.getElementById('down').classList.add('hide');
+  document.getElementById('debug').classList.add('hide');
 }
 
 
@@ -251,16 +259,14 @@ function processDatapoint(datum) {
           ts: datum.ts,
           value: `downAt ${downAt}`,
         });
-        if (MIN_AIR_TIME <= (downAt - tsStart)) {
-          changeToDown(downAt);
-        } else {
+        const tooShort = (downAt - tsStart) < MIN_AIR_TIME;
+        if (tooShort) {
           debug.push({
             ts: datum.ts,
             value: `air too short: ${(downAt - tsStart)}`,
           });
-          // TODO - change to Down, with optinal param
-          changeToDebug();
         }
+        changeToDown(downAt, tooShort);
       } else if (data.length <= downAtIndex) {
           debug.push({
             ts: datum.ts,

@@ -90,8 +90,13 @@ body {
   overflow-y: scroll;
 }
 
-#down h2 {
+#down #time {
   font-size: 8em;
+  font-family: monospace;
+}
+
+#down #smirk {
+  font-size: 6em;
   font-family: monospace;
 }
 
