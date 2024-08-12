@@ -95,7 +95,12 @@ body {
   font-family: monospace;
 }
 
-#down #smirk {
+#down .jibe {
+  font-size: 7em;
+  font-family: monospace;
+}
+
+#down .try-again {
   font-size: 6em;
   font-family: monospace;
 }
