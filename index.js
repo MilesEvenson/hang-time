@@ -298,6 +298,15 @@ function init() {
 }
 
 
+function reset() {
+  tsStart = -1;
+  tsLast = Date.now();
+  data.splice(0, data.length);
+  debug.splice(0, debug.length);
+  changeToLaunch();
+}
+
+
 function handleDebug() {
   changeToDebug();
 }
