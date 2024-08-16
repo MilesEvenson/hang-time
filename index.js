@@ -71,7 +71,7 @@ function changeToAir(now) {
 }
 
 
-function changeToDown(now, tooShort) {
+function changeToDown(now) {
   clearInterval(tickerId);
   mode = MODES.DOWN;
 
@@ -79,9 +79,6 @@ function changeToDown(now, tooShort) {
 
   document.getElementById('down').classList.remove('hide');
   document.getElementById('time').innerText = `${(now - tsStart)}ms`;
-  if (tooShort) {
-    document.querySelectorAll('#down .jibe').forEach(node => node.classList.remove('hide'));
-  }
 
   document.getElementById('standby').classList.add('hide');
   document.getElementById('launch').classList.add('hide');
@@ -259,14 +256,7 @@ function processDatapoint(datum) {
           ts: datum.ts,
           value: `downAt ${downAt}`,
         });
-        const tooShort = (downAt - tsStart) < MIN_AIR_TIME;
-        if (tooShort) {
-          debug.push({
-            ts: datum.ts,
-            value: `air too short: ${(downAt - tsStart)}`,
-          });
-        }
-        changeToDown(downAt, tooShort);
+        changeToDown(downAt);
       } else if (data.length <= downAtIndex) {
           debug.push({
             ts: datum.ts,
