@@ -81,7 +81,6 @@ function changeToDown(now, tooShort) {
   document.getElementById('time').innerText = `${(now - tsStart)}ms`;
   if (tooShort) {
     document.querySelectorAll('#down .jibe').forEach(node => node.classList.remove('hide'));
-    document.querySelector('#down .try-again').classList.remove('hide');
   }
 
   document.getElementById('standby').classList.add('hide');
