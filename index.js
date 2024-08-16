@@ -303,6 +303,7 @@ function reset() {
   tsLast = Date.now();
   data.splice(0, data.length);
   debug.splice(0, debug.length);
+  window.addEventListener('devicemotion', handleMotion);
   changeToLaunch();
 }
 
