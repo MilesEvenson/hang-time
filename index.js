@@ -137,7 +137,7 @@ function getAirStartIndex(samples) {
   }
 
   for (let i = 9; i < samples.length; i++) {
-    if (!samples[i-9].value <= MIN_ACCELERATION) {
+    if (samples[i-9].value <= MIN_ACCELERATION) {
       continue;
     }
 
