@@ -4,7 +4,6 @@ let tsStart = -1;
 let tsLast = Date.now();
 let tickerId = 0;
 const MIN_ACCELERATION = 12.0;
-const MIN_AIR_TIME = 1000;
 // Check every 30ms
 const INTERVAL = 30;
 // Hold samples from the last ~900ms
