@@ -137,49 +137,19 @@ function getAirStartIndex(samples) {
   }
 
   for (let i = 9; i < samples.length; i++) {
-    let floor = MIN_ACCELERATION < samples[i-9].value;
-
-    let rise1 = samples[i-9].value < samples[i-8].value;
-    let rise2 = samples[i-8].value < samples[i-7].value;
-
-    let slow1 = samples[i-7].value > samples[i-6].value;
-    let slow2 = samples[i-6].value > samples[i-5].value;
-
-    let air1 = samples[i-4].value < samples[i-5].value;
-    let air2 = samples[i-3].value < samples[i-5].value;
-    let air3 = samples[i-2].value < samples[i-5].value;
-    let air4 = samples[i-1].value < samples[i-5].value;
-    let air5 = samples[i].value   < samples[i-5].value;
-
-    if (!floor) {
+    if (!samples[i-9].value <= MIN_ACCELERATION) {
       continue;
     }
-
-    console.log('\n');
-    console.log(`starting at ${i}`);
-    console.log(`floor ${samples[i-9].value} ${floor ? '|' : 'x'}`);
-
-    console.log(`rise1 ${samples[i-8].value} ${rise1 ? '\\' : '/'}`);
-    console.log(`rise2 ${samples[i-7].value} ${rise2 ? ' \\' : '/'}`);
-
-    console.log(`slow1 ${samples[i-6].value} ${slow1 ? ' /' : '\\'}`);
-    console.log(`slow2 ${samples[i-5].value} ${slow2 ? '/' : '\\'}`);
-
-    console.log(`air1  ${samples[i-4].value} ${air1 ? '|' : 'x'}`);
-    console.log(`air2  ${samples[i-3].value} ${air2 ? '|' : 'x'}`);
-    console.log(`air3  ${samples[i-2].value} ${air3 ? '|' : 'x'}`);
-    console.log(`air4  ${samples[i-1].value} ${air4 ? '|' : 'x'}`);
-    console.log(`air5  ${samples[i].value} ${air5 ? '|' : 'x'}`);
 
     if (
       MIN_ACCELERATION < samples[i-9].value
       // 3 points with increasing acceleration
-      // (hand still pushing up to launch)
+      // (hand is still pushing up to launch)
       && samples[i-9].value < samples[i-8].value
       && samples[i-8].value < samples[i-7].value
 
       // 3 points with decreasing acceleration
-      // (phone acceleration slows after initial release)
+      // (phone acceleration fading after initial release)
       && samples[i-7].value > samples[i-6].value
       && samples[i-6].value > samples[i-5].value
 
@@ -199,7 +169,7 @@ function getAirStartIndex(samples) {
 
 function getDownIndex(samples) {
   // Allow for some jitter in values from the accelerometer.
-  const DECEL_THRESHOLD = 11.0;
+  const DECEL_THRESHOLD = 12.0;
   const DOWN_THRESHOLD = 9.0;
   const MIN_DOWN_POINTS = 10;
   let isRising = true;
