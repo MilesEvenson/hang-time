@@ -3,7 +3,7 @@
 let tsStart = -1;
 let tsLast = Date.now();
 let tickerId = 0;
-const MIN_ACCELERATION = 11.0;
+const MIN_ACCELERATION = 12.0;
 const MIN_AIR_TIME = 1000;
 // Check every 30ms
 const INTERVAL = 30;
@@ -132,33 +132,67 @@ function changeToDebug() {
 
 
 function getAirStartIndex(samples) {
-  if (samples.length < WINDOW_SIZE) {
+  if (samples.length < 9) {
     return -1;
   }
 
-  // Try to enforce a minimum of ~300ms air time.
-  const MIN_RISE_SAMPLES = 10;
+  for (let i = 9; i < samples.length; i++) {
+    let floor = MIN_ACCELERATION < samples[i-9].value;
 
-  let riseCount = 0;
-  let releaseIndex = -1;
-  let maxAcceleration = samples[0].value;
+    let rise1 = samples[i-9].value < samples[i-8].value;
+    let rise2 = samples[i-8].value < samples[i-7].value;
 
-  for (let i = 1; i < samples.length; i++) {
-    const slowing = samples[i].value < samples[i-1].value;
+    let slow1 = samples[i-7].value > samples[i-6].value;
+    let slow2 = samples[i-6].value > samples[i-5].value;
 
-    if (slowing) {
-      riseCount++;
-    } else {
-      releaseIndex = i;
-      riseCount = 0;
-      maxAcceleration = Math.max(maxAcceleration, samples[i].value);
+    let air1 = samples[i-4].value < samples[i-5].value;
+    let air2 = samples[i-3].value < samples[i-5].value;
+    let air3 = samples[i-2].value < samples[i-5].value;
+    let air4 = samples[i-1].value < samples[i-5].value;
+    let air5 = samples[i].value   < samples[i-5].value;
+
+    if (!floor) {
+      continue;
     }
 
-    if (MIN_RISE_SAMPLES <= riseCount && MIN_ACCELERATION < maxAcceleration) {
-      return releaseIndex;
+    console.log('\n');
+    console.log(`starting at ${i}`);
+    console.log(`floor ${samples[i-9].value} ${floor ? '|' : 'x'}`);
+
+    console.log(`rise1 ${samples[i-8].value} ${rise1 ? '\\' : '/'}`);
+    console.log(`rise2 ${samples[i-7].value} ${rise2 ? ' \\' : '/'}`);
+
+    console.log(`slow1 ${samples[i-6].value} ${slow1 ? ' /' : '\\'}`);
+    console.log(`slow2 ${samples[i-5].value} ${slow2 ? '/' : '\\'}`);
+
+    console.log(`air1  ${samples[i-4].value} ${air1 ? '|' : 'x'}`);
+    console.log(`air2  ${samples[i-3].value} ${air2 ? '|' : 'x'}`);
+    console.log(`air3  ${samples[i-2].value} ${air3 ? '|' : 'x'}`);
+    console.log(`air4  ${samples[i-1].value} ${air4 ? '|' : 'x'}`);
+    console.log(`air5  ${samples[i].value} ${air5 ? '|' : 'x'}`);
+
+    if (
+      MIN_ACCELERATION < samples[i-9].value
+      // 3 points with increasing acceleration
+      // (hand still pushing up to launch)
+      && samples[i-9].value < samples[i-8].value
+      && samples[i-8].value < samples[i-7].value
+
+      // 3 points with decreasing acceleration
+      // (phone acceleration slows after initial release)
+      && samples[i-7].value > samples[i-6].value
+      && samples[i-6].value > samples[i-5].value
+
+      // 5 points below the min value (stable flight)
+      && samples[i-4].value < samples[i-5].value
+      && samples[i-3].value < samples[i-5].value
+      && samples[i-2].value < samples[i-5].value
+      && samples[i-1].value < samples[i-5].value
+      && samples[i].value   < samples[i-5].value
+    ) {
+      return i-7;
     }
   }
-
   return -1;
 }
 
