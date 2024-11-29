@@ -175,6 +175,7 @@ function getDownIndex(samples) {
       // We know the phone is in free fall when a sample value is below this threshold.
       if (samples[i].value <= DECEL_THRESHOLD) {
         debug.push({
+          debug: true,
           ts: samples[i].ts,
           value: `falling at ${samples[i].ts}`,
         });
@@ -229,7 +230,7 @@ function handleMotion(ev) {
 
 function processDatapoint(datum) {
   data.push(datum);
-  debug.push(datum);
+  debug.push({ ...datum, debug: true });
 
   if (WINDOW_SIZE < data.length) {
     // Drop the oldest datapoint
@@ -240,6 +241,7 @@ function processDatapoint(datum) {
       if (airStartIndex !== -1) {
         const airStartAt = data[airStartIndex].ts;
         debug.push({
+          debug: debug,
           ts: datum.ts,
           value: `airStartAt ${airStartAt}`,
         });
@@ -252,12 +254,14 @@ function processDatapoint(datum) {
       if (downAtIndex !== -1 && downAtIndex < data.length) {
         const downAt = data[downAtIndex].ts;
         debug.push({
+          debug: debug,
           ts: datum.ts,
           value: `downAt ${downAt}`,
         });
         changeToDown(downAt);
       } else if (data.length <= downAtIndex) {
           debug.push({
+            debug: debug,
             ts: datum.ts,
             value: `data (${data.length}) < downAtIndex ${downAtIndex}`,
           });
