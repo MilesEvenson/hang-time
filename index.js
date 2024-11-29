@@ -142,24 +142,20 @@ function getAirStartIndex(samples) {
 
     if (
       MIN_ACCELERATION < samples[i-9].value
-      // 3 points with increasing acceleration
-      // (hand is still pushing up to launch)
+      // identify 3 points describing a spike of acceleration -/\---
       && samples[i-9].value < samples[i-8].value
-      && samples[i-8].value < samples[i-7].value
+      && samples[i-8].value > samples[i-7].value
 
-      // 3 points with decreasing acceleration
-      // (phone acceleration fading after initial release)
-      && samples[i-7].value > samples[i-6].value
-      && samples[i-6].value > samples[i-5].value
-
-      // 5 points below the min value (stable flight)
-      && samples[i-4].value < samples[i-5].value
-      && samples[i-3].value < samples[i-5].value
-      && samples[i-2].value < samples[i-5].value
-      && samples[i-1].value < samples[i-5].value
-      && samples[i].value   < samples[i-5].value
+      // 7 points below the spike (stable flight)
+      && samples[i-6].value < samples[i-7].value
+      && samples[i-5].value < samples[i-7].value
+      && samples[i-4].value < samples[i-7].value
+      && samples[i-3].value < samples[i-7].value
+      && samples[i-2].value < samples[i-7].value
+      && samples[i-1].value < samples[i-7].value
+      && samples[i].value   < samples[i-7].value
     ) {
-      return i-7;
+      return i-8;
     }
   }
   return -1;
