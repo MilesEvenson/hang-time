@@ -254,14 +254,14 @@ function processDatapoint(datum) {
       if (downAtIndex !== -1 && downAtIndex < data.length) {
         const downAt = data[downAtIndex].ts;
         debug.push({
-          debug: debug,
+          debug: true,
           ts: datum.ts,
           value: `downAt ${downAt}`,
         });
         changeToDown(downAt);
       } else if (data.length <= downAtIndex) {
           debug.push({
-            debug: debug,
+            debug: true,
             ts: datum.ts,
             value: `data (${data.length}) < downAtIndex ${downAtIndex}`,
           });
