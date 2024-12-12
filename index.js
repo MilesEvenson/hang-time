@@ -241,7 +241,7 @@ function processDatapoint(datum) {
       if (airStartIndex !== -1) {
         const airStartAt = data[airStartIndex].ts;
         debug.push({
-          debug: debug,
+          debug: true,
           ts: datum.ts,
           value: `airStartAt ${airStartAt}`,
         });
