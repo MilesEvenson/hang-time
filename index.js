@@ -1,4 +1,4 @@
-
+#
 
 let tsStart = -1;
 let tsLast = Date.now();
@@ -308,7 +308,7 @@ function handleDebug() {
 function copyData() {
   try {
     navigator.clipboard.writeText(JSON.stringify(debug)).then(() => alert('copied'));
-  } catch (catch) {
+  } catch (ex) {
     alert(ex);
   }
 }
