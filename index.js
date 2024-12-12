@@ -306,7 +306,11 @@ function handleDebug() {
 
 
 function copyData() {
-  navigator.clipboard.writeText(JSON.stringify(debug)).then(() => alert('copied'));
+  try {
+    navigator.clipboard.writeText(JSON.stringify(debug)).then(() => alert('copied'));
+  } catch (catch) {
+    alert(ex);
+  }
 }
 
 
